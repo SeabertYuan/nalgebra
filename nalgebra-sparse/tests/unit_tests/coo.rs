@@ -87,9 +87,9 @@ fn coo_construction_for_valid_data() {
     }
 
     {
-        // from diagonal, full diagonal
-        let diagonal = vec![1, 2, 3, 4, 5].into_iter();
-        let coo = CooMatrix::<i32>::from_diagonal(5, diagonal);
+        // from diagonal
+        let diagonal = vec![1, 2, 3, 4, 5];
+        let coo = CooMatrix::<i32>::from_diagonal(diagonal);
 
         assert_eq!(coo.nrows(), 5);
         assert_eq!(coo.ncols(), 5);
@@ -106,30 +106,6 @@ fn coo_construction_for_valid_data() {
             0, 0, 3, 0, 0,
             0, 0, 0, 4, 0,
             0, 0, 0, 0, 5
-        ]);
-        assert_eq!(DMatrix::from(&coo), expected_dense);
-    }
-
-    {
-        // from diagonal, short diagonal
-        let diagonal = vec![1, 2, 3, 4].into_iter();
-        let coo = CooMatrix::<i32>::from_diagonal(5, diagonal);
-
-        assert_eq!(coo.nrows(), 5);
-        assert_eq!(coo.ncols(), 5);
-
-        let expected_triplets = vec![(0, 0, 1), (1, 1, 2), (2, 2, 3), (3, 3, 4)];
-        let actual_triplets: Vec<(usize, usize, i32)> =
-            coo.triplet_iter().map(|(i, j, v)| (i, j, *v)).collect();
-        assert_eq!(actual_triplets, expected_triplets);
-
-        #[rustfmt::skip]
-        let expected_dense = DMatrix::from_row_slice(5, 5, &[
-            1, 0, 0, 0, 0,
-            0, 2, 0, 0, 0,
-            0, 0, 3, 0, 0,
-            0, 0, 0, 4, 0,
-            0, 0, 0, 0, 0
         ]);
         assert_eq!(DMatrix::from(&coo), expected_dense);
     }

@@ -110,18 +110,22 @@ impl<T> CooMatrix<T> {
         Self::new(nrows, ncols)
     }
 
-    /// Constructs a square `n` by `n` CooMatrix by producing a diagonal from the given iterator.
-    /// If the length of the diagonal is less than `n`, the diagonal will start filling from
-    /// (0, 0).
-    ///
-    /// Panics
-    /// -------
-    ///
-    /// Panics if the length of diagonal is greater than `n`.
-    pub fn from_diagonal(n: usize, diagonal: impl IntoIterator<Item = T>) -> Self {
-        let mut coo = Self::new(n, n);
-        coo.push_diagonal(0, 0, diagonal);
-        coo
+    /// Constructs a square COO matrix by producing a diagonal from the given iterator. The
+    /// resulting matrix will be the same length as the diagonal iterator
+    pub fn from_diagonal(diagonal: impl IntoIterator<Item = T>) -> Self {
+        let (row_indices, (col_indices, values)): (Vec<usize>, (Vec<usize>, Vec<T>)) = diagonal
+            .into_iter()
+            .enumerate()
+            .map(|(i, v)| (i, (i, v)))
+            .unzip();
+        let n = values.len();
+        Self {
+            nrows: n,
+            ncols: n,
+            row_indices,
+            col_indices,
+            values,
+        }
     }
 
     /// Try to construct a COO matrix from the given dimensions and a collection of
