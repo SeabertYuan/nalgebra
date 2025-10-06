@@ -110,6 +110,20 @@ impl<T> CooMatrix<T> {
         Self::new(nrows, ncols)
     }
 
+    /// Constructs a square `n` by `n` CooMatrix by producing a diagonal from the given iterator.
+    /// If the length of the diagonal is less than `n`, the diagonal will start filling from
+    /// (0, 0).
+    ///
+    /// Panics
+    /// -------
+    ///
+    /// Panics if the length of diagonal is greater than `n`.
+    pub fn from_diagonal(n: usize, diagonal: impl IntoIterator<Item = T>) -> Self {
+        let mut coo = Self::new(n, n);
+        coo.push_diagonal(0, 0, diagonal);
+        coo
+    }
+
     /// Try to construct a COO matrix from the given dimensions and a collection of
     /// (i, j, v) triplets.
     ///
@@ -238,6 +252,26 @@ impl<T> CooMatrix<T> {
         self.row_indices.push(i);
         self.col_indices.push(j);
         self.values.push(v);
+    }
+
+    /// Push an iterator into the diagonal of a the given CooMatrix starting from
+    /// the `i`th row and the `j`th column.
+    ///
+    /// # Panics
+    /// ---------
+    ///
+    /// Panics if `j + diagonal.len()` or if `i + diagonal.len()` is out of bounds.
+    // TODO: this method should check the preconditions before making changes to the given
+    // matrix, but that is difficult since an iterator does not have a known size
+    #[inline]
+    pub fn push_diagonal(&mut self, i: usize, j: usize, diagonal: impl IntoIterator<Item = T>) {
+        assert!(i < self.nrows);
+        assert!(j < self.ncols);
+        for (diag_idx, v) in diagonal.into_iter().enumerate() {
+            self.row_indices.push(i + diag_idx);
+            self.col_indices.push(j + diag_idx);
+            self.values.push(v);
+        }
     }
 
     /// Clear all triplets from the matrix.

@@ -85,6 +85,54 @@ fn coo_construction_for_valid_data() {
         ]);
         assert_eq!(DMatrix::from(&coo), expected_dense);
     }
+
+    {
+        // from diagonal, full diagonal
+        let diagonal = vec![1, 2, 3, 4, 5].into_iter();
+        let coo = CooMatrix::<i32>::from_diagonal(5, diagonal);
+
+        assert_eq!(coo.nrows(), 5);
+        assert_eq!(coo.ncols(), 5);
+
+        let expected_triplets = vec![(0, 0, 1), (1, 1, 2), (2, 2, 3), (3, 3, 4), (4, 4, 5)];
+        let actual_triplets: Vec<(usize, usize, i32)> =
+            coo.triplet_iter().map(|(i, j, v)| (i, j, *v)).collect();
+        assert_eq!(actual_triplets, expected_triplets);
+
+        #[rustfmt::skip]
+        let expected_dense = DMatrix::from_row_slice(5, 5, &[
+            1, 0, 0, 0, 0,
+            0, 2, 0, 0, 0,
+            0, 0, 3, 0, 0,
+            0, 0, 0, 4, 0,
+            0, 0, 0, 0, 5
+        ]);
+        assert_eq!(DMatrix::from(&coo), expected_dense);
+    }
+
+    {
+        // from diagonal, short diagonal
+        let diagonal = vec![1, 2, 3, 4].into_iter();
+        let coo = CooMatrix::<i32>::from_diagonal(5, diagonal);
+
+        assert_eq!(coo.nrows(), 5);
+        assert_eq!(coo.ncols(), 5);
+
+        let expected_triplets = vec![(0, 0, 1), (1, 1, 2), (2, 2, 3), (3, 3, 4)];
+        let actual_triplets: Vec<(usize, usize, i32)> =
+            coo.triplet_iter().map(|(i, j, v)| (i, j, *v)).collect();
+        assert_eq!(actual_triplets, expected_triplets);
+
+        #[rustfmt::skip]
+        let expected_dense = DMatrix::from_row_slice(5, 5, &[
+            1, 0, 0, 0, 0,
+            0, 2, 0, 0, 0,
+            0, 0, 3, 0, 0,
+            0, 0, 0, 4, 0,
+            0, 0, 0, 0, 0
+        ]);
+        assert_eq!(DMatrix::from(&coo), expected_dense);
+    }
 }
 
 #[test]
@@ -553,4 +601,133 @@ fn coo_remove_row_column_valid() {
             (2, 2, &9)
         ]
     );
+}
+
+#[test]
+fn coo_push_diagonal_valid() {
+    {
+        // Push perfect diagonal length
+        let mut coo = CooMatrix::new(5, 5);
+
+        let diagonal = vec![1, 2, 3, 4, 5];
+
+        coo.push_diagonal(0, 0, diagonal);
+
+        assert_eq!(coo.nrows(), 5);
+        assert_eq!(coo.ncols(), 5);
+
+        let expected_triplets = vec![(0, 0, 1), (1, 1, 2), (2, 2, 3), (3, 3, 4), (4, 4, 5)];
+        let actual_triplets: Vec<(usize, usize, i32)> =
+            coo.triplet_iter().map(|(i, j, v)| (i, j, *v)).collect();
+
+        assert_eq!(expected_triplets, actual_triplets);
+    }
+
+    {
+        // Push row off-diagonal perfect length
+        let mut coo = CooMatrix::new(5, 5);
+
+        let diagonal = vec![1, 2, 3, 4];
+
+        coo.push_diagonal(1, 0, diagonal);
+
+        assert_eq!(coo.nrows(), 5);
+        assert_eq!(coo.ncols(), 5);
+
+        let expected_triplets = vec![(1, 0, 1), (2, 1, 2), (3, 2, 3), (4, 3, 4)];
+        let actual_triplets: Vec<(usize, usize, i32)> =
+            coo.triplet_iter().map(|(i, j, v)| (i, j, *v)).collect();
+
+        assert_eq!(expected_triplets, actual_triplets);
+    }
+
+    {
+        // Push col off-diagonal perfect length
+        let mut coo = CooMatrix::new(5, 5);
+
+        let diagonal = vec![1, 2, 3, 4];
+
+        coo.push_diagonal(0, 1, diagonal);
+
+        assert_eq!(coo.nrows(), 5);
+        assert_eq!(coo.ncols(), 5);
+
+        let expected_triplets = vec![(0, 1, 1), (1, 2, 2), (2, 3, 3), (3, 4, 4)];
+        let actual_triplets: Vec<(usize, usize, i32)> =
+            coo.triplet_iter().map(|(i, j, v)| (i, j, *v)).collect();
+
+        assert_eq!(expected_triplets, actual_triplets);
+    }
+
+    {
+        // Push row and col off-diagonal perfect length
+        let mut coo = CooMatrix::new(5, 5);
+
+        let diagonal = vec![1, 2, 3, 4];
+
+        coo.push_diagonal(1, 1, diagonal);
+
+        assert_eq!(coo.nrows(), 5);
+        assert_eq!(coo.ncols(), 5);
+
+        let expected_triplets = vec![(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4)];
+        let actual_triplets: Vec<(usize, usize, i32)> =
+            coo.triplet_iter().map(|(i, j, v)| (i, j, *v)).collect();
+
+        assert_eq!(expected_triplets, actual_triplets);
+    }
+
+    {
+        // Push diagonal short
+        let mut coo = CooMatrix::new(5, 5);
+
+        let diagonal = vec![1, 2];
+
+        coo.push_diagonal(0, 0, diagonal);
+
+        assert_eq!(coo.nrows(), 5);
+        assert_eq!(coo.ncols(), 5);
+
+        let expected_triplets = vec![(0, 0, 1), (1, 1, 2)];
+        let actual_triplets: Vec<(usize, usize, i32)> =
+            coo.triplet_iter().map(|(i, j, v)| (i, j, *v)).collect();
+
+        assert_eq!(expected_triplets, actual_triplets);
+    }
+
+    {
+        // Push off-diagonal short
+        let mut coo = CooMatrix::new(5, 5);
+
+        let diagonal = vec![1, 2];
+
+        coo.push_diagonal(1, 2, diagonal);
+
+        assert_eq!(coo.nrows(), 5);
+        assert_eq!(coo.ncols(), 5);
+
+        let expected_triplets = vec![(1, 2, 1), (2, 3, 2)];
+        let actual_triplets: Vec<(usize, usize, i32)> =
+            coo.triplet_iter().map(|(i, j, v)| (i, j, *v)).collect();
+
+        assert_eq!(expected_triplets, actual_triplets);
+    }
+
+    {
+        // Push extreme, top right corner
+        let mut coo = CooMatrix::new(5, 5);
+
+        let diagonal = vec![1];
+
+        coo.push_diagonal(4, 4, diagonal);
+
+        assert_eq!(coo.nrows(), 5);
+        assert_eq!(coo.ncols(), 5);
+
+        let expected_triplets = vec![(4, 4, 1)];
+        let actual_triplets: Vec<(usize, usize, i32)> =
+            coo.triplet_iter().map(|(i, j, v)| (i, j, *v)).collect();
+
+        assert_eq!(expected_triplets, actual_triplets);
+    }
 }
