@@ -466,6 +466,15 @@ fn coo_remove_row_valid() {
     assert_eq!(removed_coo.ncols(), 3);
     assert_eq!(removed_coo.nnz(), 0);
 
+    assert_eq!(removed_coo.triplet_iter().collect::<Vec<_>>(), vec![]);
+
+    #[rustfmt::skip]
+    let expected_dense = DMatrix::from_row_slice(2, 3, &[
+        0, 0, 0,
+        0, 0, 0,
+    ]);
+    assert_eq!(DMatrix::from(&removed_coo), expected_dense);
+
     // makes sure resulting COO matrix still works. This will push to the new
     // matrices row 0.
     removed_coo.push(0, 0, 1);
@@ -480,6 +489,13 @@ fn coo_remove_row_valid() {
         coo.triplet_iter().collect::<Vec<_>>(),
         vec![(0, 0, &1), (0, 1, &2), (0, 2, &3)]
     );
+
+    #[rustfmt::skip]
+    let expected_dense = DMatrix::from_row_slice(2, 3, &[
+        1, 2, 3,
+        0, 0, 0,
+    ]);
+    assert_eq!(DMatrix::from(&removed_coo), expected_dense);
 }
 
 #[test]
@@ -507,6 +523,19 @@ fn coo_remove_column_valid() {
     assert_eq!(removed_coo.nrows(), 3);
     assert_eq!(removed_coo.nnz(), 2);
 
+    assert_eq!(
+        removed_coo.triplet_iter().collect::<Vec<_>>(),
+        vec![(0, 0, &1), (0, 1, &3)]
+    );
+
+    #[rustfmt::skip]
+    let expected_dense = DMatrix::from_row_slice(3, 2, &[
+        1, 3,
+        0, 0,
+        0, 0,
+    ]);
+    assert_eq!(DMatrix::from(&removed_coo), expected_dense);
+
     // makes sure resulting COO matrix still works.
     removed_coo.push(0, 1, 2);
     removed_coo.push(2, 1, 4);
@@ -519,6 +548,14 @@ fn coo_remove_column_valid() {
         coo.triplet_iter().collect::<Vec<_>>(),
         vec![(0, 0, &1), (0, 1, &2), (0, 2, &3)]
     );
+
+    #[rustfmt::skip]
+    let expected_dense = DMatrix::from_row_slice(3, 2, &[
+        1, 5,
+        0, 0,
+        0, 4,
+    ]);
+    assert_eq!(DMatrix::from(&removed_coo), expected_dense);
 }
 
 #[test]
@@ -552,6 +589,18 @@ fn coo_remove_row_column_valid() {
     assert_eq!(removed_coo.nrows(), 2);
     assert_eq!(removed_coo.nnz(), 4);
 
+    assert_eq!(
+        removed_coo.triplet_iter().collect::<Vec<_>>(),
+        vec![(0, 0, &1), (0, 1, &3), (1, 0, &7), (1, 1, &9)]
+    );
+
+    #[rustfmt::skip]
+    let expected_dense = DMatrix::from_row_slice(2, 2, &[
+        1, 3,
+        7, 9
+    ]);
+    assert_eq!(DMatrix::from(&removed_coo), expected_dense);
+
     // makes sure resulting COO matrix still works.
     removed_coo.push(0, 0, 1);
     removed_coo.push(0, 1, 0);
@@ -577,6 +626,13 @@ fn coo_remove_row_column_valid() {
             (2, 2, &9)
         ]
     );
+
+    #[rustfmt::skip]
+    let expected_dense = DMatrix::from_row_slice(2, 2, &[
+        2, 3,
+        7, 13
+    ]);
+    assert_eq!(DMatrix::from(&removed_coo), expected_dense);
 }
 
 #[test]
